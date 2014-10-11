@@ -88,47 +88,14 @@ public class FileStoreDataService implements DataService
 
     public void consume(Document data)
     {
-        logger.log(Level.FINE, "DOMDocumentPushDataSink.consume");
+        logger.log(Level.FINE, "FileStoreDataService.consume");
 
         try
         {
-            MessageFactory messageFactory   = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);
-            SOAPMessage    request          = messageFactory.createMessage();
-            SOAPPart       requestPart      = request.getSOAPPart();
-            SOAPEnvelope   requestEnvelope  = requestPart.getEnvelope();
-            SOAPBody       requestBody      = requestEnvelope.getBody();
-            Document       requestData      = (Document) data.cloneNode(true);
-            Element        requestElement   = requestData.getDocumentElement();
-            Element        requestIdElement = requestData.createElementNS(CommonDefs.INTERCONNECT_NAMESPACE, CommonDefs.INTERCONNECT_PARAMETERNAME_ID);
-            requestIdElement.appendChild(requestData.createTextNode(_endpointPath));
-            requestElement.appendChild(requestIdElement);
-            requestBody.addDocument(requestData);
-
-            if (logger.isLoggable(Level.FINE))
-            {
-                ByteArrayOutputStream requestOutputStream = new ByteArrayOutputStream();
-                request.writeTo(requestOutputStream);
-                logger.log(Level.FINE, "DOMDocumentPushDataSink.consume: request = " + requestOutputStream.toString());
-                requestOutputStream.close();
-            }
-
-            SOAPConnectionFactory connectionFactory = SOAPConnectionFactory.newInstance();
-            SOAPConnection        connection        = connectionFactory.createConnection();
-            URL                   serviceURL        = new URL(_serviceRootURL + "/" + CommonDefs.INTERCONNECT_SERVICE_PATH + "/" + CommonDefs.INTERCONNECT_SERVICENAME_ACCEPTOR);
-
-            SOAPMessage responce = connection.call(request, serviceURL);
-
-            if (logger.isLoggable(Level.FINE))
-            {
-                ByteArrayOutputStream responceOutputStream = new ByteArrayOutputStream();
-                responce.writeTo(responceOutputStream);
-                logger.log(Level.FINE, "DOMDocumentPushDataSink.consume: responce = " + responceOutputStream.toString());
-                responceOutputStream.close();
-            }
         }
         catch (Throwable throwable)
         {
-            logger.log(Level.WARNING, "Problems with web service invoke", throwable);
+            logger.log(Level.WARNING, "Problems with ckan filestore api invoke", throwable);
         }
     }
 
