@@ -4,8 +4,6 @@
 
 package com.arjuna.dbplugins.ckan.filestore.dataflownodes;
 
-import java.io.ByteArrayOutputStream;
-import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -13,41 +11,35 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPConnection;
-import javax.xml.soap.SOAPConnectionFactory;
-import javax.xml.soap.SOAPConstants;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.SOAPMessage;
-import javax.xml.soap.SOAPPart;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
+import javax.ws.rs.core.MediaType;
+import org.jboss.resteasy.client.ClientRequest;
+import org.jboss.resteasy.client.ClientResponse;
+import org.jboss.resteasy.util.GenericType;
+import org.jboss.resteasy.util.HttpResponseCodes;
 import com.arjuna.databroker.data.DataConsumer;
 import com.arjuna.databroker.data.DataFlow;
 import com.arjuna.databroker.data.DataProvider;
 import com.arjuna.databroker.data.DataService;
-import com.arjuna.databroker.data.DataSink;
 import com.arjuna.databroker.data.jee.annotation.DataConsumerInjection;
-import com.arjuna.databroker.data.jee.annotation.DataProviderInjection;
 
-public class FileStoreDataService implements DataService
+public class FileStoreCKANDataService implements DataService
 {
-    private static final Logger logger = Logger.getLogger(FileStoreDataService.class.getName());
+    private static final Logger logger = Logger.getLogger(FileStoreCKANDataService.class.getName());
 
     public static final String SERVICEROOTURL_PROPERTYNAME = "Service Root URL";
+    public static final String RESOURCEID_PROPERTYNAME     = "Resource Id";
+    public static final String APIKEY_PROPERTYNAME         = "API Key";
 
-    public FileStoreDataService(String name, Map<String, String> properties)
+    public FileStoreCKANDataService(String name, Map<String, String> properties)
     {
-        logger.log(Level.FINE, "FileStoreDataService: " + name + ", " + properties);
+        logger.log(Level.FINE, "FileStoreCKANDataService: " + name + ", " + properties);
 
         _name       = name;
         _properties = properties;
 
         _serviceRootURL = properties.get(SERVICEROOTURL_PROPERTYNAME);
+        _resourceId     = properties.get(RESOURCEID_PROPERTYNAME);
+        _apiKey         = properties.get(APIKEY_PROPERTYNAME);
     }
 
     @Override
@@ -86,12 +78,26 @@ public class FileStoreDataService implements DataService
         _properties = properties;
     }
 
-    public void consume(Document data)
+    public void consume(String data)
     {
-        logger.log(Level.FINE, "FileStoreDataService.consume");
+        logger.log(Level.FINE, "FileStoreCKANDataService.consume");
 
         try
         {
+            ClientRequest request = new ClientRequest(_serviceRootURL + "/api/3/action/resource_update");
+            request.accept(MediaType.MULTIPART_FORM_DATA);
+            request.header("Authorization", _apiKey);
+            request.body("id", _resourceId);
+            request.body("upload", data);
+
+            ClientResponse<ResourceUpdaterResponceDTO> response = request.get(new GenericType<ResourceUpdaterResponceDTO>() {});
+
+            if (response.getStatus() == HttpResponseCodes.SC_OK)
+            {
+            	ResourceUpdaterResponceDTO resourceUpdaterResponceDTO = response.getEntity();
+            }
+            else
+                logger.log(Level.WARNING, "DataBrokerClient.getDataBrokerSummaries: status = " + response.getStatus());
         }
         catch (Throwable throwable)
         {
@@ -119,7 +125,7 @@ public class FileStoreDataService implements DataService
     {
         Set<Class<?>> dataConsumerDataClasses = new HashSet<Class<?>>();
 
-        dataConsumerDataClasses.add(Document.class);
+        dataConsumerDataClasses.add(String.class);
 
         return dataConsumerDataClasses;
     }
@@ -128,18 +134,19 @@ public class FileStoreDataService implements DataService
     @SuppressWarnings("unchecked")
     public <T> DataConsumer<T> getDataConsumer(Class<T> dataClass)
     {
-        if (dataClass == Document.class)
+        if (dataClass == String.class)
             return (DataConsumer<T>) _dataConsumer;
         else
             return null;
     }
 
     private String _serviceRootURL;
-    private String _endpointPath;
+    private String _resourceId;
+    private String _apiKey;
 
     private DataFlow               _dataFlow;
     private String                 _name;
     private Map<String, String>    _properties;
     @DataConsumerInjection(methodName="consume")
-    private DataConsumer<Document> _dataConsumer;
+    private DataConsumer<String> _dataConsumer;
 }
