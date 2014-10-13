@@ -14,20 +14,20 @@ public class ResourceUpdaterResponceDTO implements Serializable
     {
     }
 
-    public ResourceUpdaterResponceDTO(String stuff)
+    public ResourceUpdaterResponceDTO(Boolean success)
     {
-        _stuff = stuff;
+        _success = success;
     }
 
-    public String getStuff()
+    public Boolean getSuccess()
     {
-        return _stuff;
+        return _success;
     }
 
-    public void setStuff(String stuff)
+    public void setSuccess(Boolean success)
     {
-        _stuff = stuff;
+        _success = success;
     }
 
-    private String _stuff;
+    private Boolean _success;
 }
