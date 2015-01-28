@@ -30,6 +30,11 @@ public class FileStoreCKANDataService implements DataService
     public static final String RESOURCEID_PROPERTYNAME     = "Resource Id";
     public static final String APIKEY_PROPERTYNAME         = "API Key";
 
+    public FileStoreCKANDataService()
+    {
+        logger.log(Level.FINE, "FileStoreCKANDataService");
+    }
+
     public FileStoreCKANDataService(String name, Map<String, String> properties)
     {
         logger.log(Level.FINE, "FileStoreCKANDataService: " + name + ", " + properties);
