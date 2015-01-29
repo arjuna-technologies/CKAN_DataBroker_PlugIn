@@ -73,8 +73,8 @@ public class FileStoreCKANDataFlowNodeFactory implements DataFlowNodeFactory
             {
                 List<String> propertyNames = new LinkedList<String>();
 
-                propertyNames.add(FileStoreCKANDataService.SERVICEROOTURL_PROPERTYNAME);
-                propertyNames.add(FileStoreCKANDataService.RESOURCEID_PROPERTYNAME);
+                propertyNames.add(FileStoreCKANDataService.CKANROOTURL_PROPERTYNAME);
+                propertyNames.add(FileStoreCKANDataService.PACKAGEID_PROPERTYNAME);
                 propertyNames.add(FileStoreCKANDataService.APIKEY_PROPERTYNAME);
 
                 return propertyNames;

@@ -37,6 +37,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-multipart-provider</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.arjuna.databroker</groupId>
             <artifactId>data-common</artifactId>
             <version>${version.com.arjuna.databroker}</version>
