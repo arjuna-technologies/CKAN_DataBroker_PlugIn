@@ -102,12 +102,14 @@ public class FileStoreCKANDataService implements DataService
         {
             ClientRequest request = new ClientRequest(_ckanRootURL + "/api/action/resource_create");
 
+            String name = UUID.randomUUID().toString();
             MultipartFormDataOutput upload = new MultipartFormDataOutput();
             upload.addFormData("package_id", _packageId, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            upload.addFormData("name", UUID.randomUUID().toString(), MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            upload.addFormData("upload", data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            upload.addFormData("name", name, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
-            upload.addFormData("url", "http://example.org/fred", MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            upload.addFormData("url", "http://example.org/" + name, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+
+            upload.addPart(data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             request.header("Authorization", _apiKey);
             request.body(MediaType.MULTIPART_FORM_DATA_TYPE, upload);
@@ -116,9 +118,10 @@ public class FileStoreCKANDataService implements DataService
 
             if (response.getStatus() == HttpResponseCodes.SC_OK)
             {
-                ResourceUpdaterResponceDTO resourceUpdaterResponceDTO = response.getEntity();
+                String error = response.getEntity(String.class);
+                logger.log(Level.FINE, "Success: [" + error + "]");
             }
-            else if (response.getStatus() == HttpResponseCodes.SC_CONFLICT)
+            else if (response.getStatus() != HttpResponseCodes.SC_CONFLICT)
             {
                 String error = response.getEntity(String.class);
                 logger.log(Level.WARNING, "Error: [" + error + "]");
