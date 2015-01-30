@@ -31,7 +31,7 @@ public class CKANAPIProperties
 
     public boolean isLoaded()
     {
-    	return _loaded;
+        return _loaded;
     }
 
     public String getCKANRootURL()

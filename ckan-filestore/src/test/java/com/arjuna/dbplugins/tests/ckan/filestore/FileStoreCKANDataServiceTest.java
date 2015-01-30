@@ -28,14 +28,14 @@ public class FileStoreCKANDataServiceTest
     {
         try
         {
-        	CKANAPIProperties ckanAPIProperties = new CKANAPIProperties("ckanapi.properties");
+            CKANAPIProperties ckanAPIProperties = new CKANAPIProperties("ckanapi.properties");
 
-        	if (! ckanAPIProperties.isLoaded())
-        	{
-        		logger.log(Level.INFO, "SKIPPING TEST 'createResource', no propertiles file");
-        		return;
-        	}
-        	
+            if (! ckanAPIProperties.isLoaded())
+            {
+                logger.log(Level.INFO, "SKIPPING TEST 'createResource', no propertiles file");
+                return;
+            }
+
             DataFlowNodeLifeCycleControl dataFlowNodeLifeCycleControl = new TestJEEDataFlowNodeLifeCycleControl();
 
             String              name       = "FileStoreCKANDataService";
@@ -52,6 +52,8 @@ public class FileStoreCKANDataServiceTest
 
             ((ObservableDataProvider<String>) dummyDataSource.getDataProvider(String.class)).addDataConsumer((ObserverDataConsumer<String>) fileStoreCKANDataService.getDataConsumer(String.class));
 
+            dummyDataSource.sendData("Test Data, Test Text");
+            
             dataFlowNodeLifeCycleControl.removeDataFlowNode(dummyDataSource);
             dataFlowNodeLifeCycleControl.removeDataFlowNode(fileStoreCKANDataService);
         }

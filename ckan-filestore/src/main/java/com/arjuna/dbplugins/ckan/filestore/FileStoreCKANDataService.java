@@ -4,6 +4,10 @@
 
 package com.arjuna.dbplugins.ckan.filestore;
 
+import java.io.File;
+import java.lang.annotation.Annotation;
+import java.nio.charset.Charset;
+import java.nio.charset.spi.CharsetProvider;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -12,12 +16,17 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.MediaType;
-import org.jboss.resteasy.client.ClientRequest;
-import org.jboss.resteasy.client.ClientResponse;
-import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataOutput;
-import org.jboss.resteasy.util.GenericType;
-import org.jboss.resteasy.util.HttpResponseCodes;
+import org.apache.commons.codec.Charsets;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.params.HttpClientParams;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.DefaultHttpClient;
 import com.arjuna.databroker.data.DataConsumer;
 import com.arjuna.databroker.data.DataFlow;
 import com.arjuna.databroker.data.DataProvider;
@@ -100,34 +109,32 @@ public class FileStoreCKANDataService implements DataService
 
         try
         {
-            ClientRequest request = new ClientRequest(_ckanRootURL + "/api/action/resource_create");
-
             String name = UUID.randomUUID().toString();
-            MultipartFormDataOutput upload = new MultipartFormDataOutput();
-            upload.addFormData("package_id", _packageId, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            upload.addFormData("name", name, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            StringBody packageIdBody = new StringBody(_packageId, ContentType.MULTIPART_FORM_DATA.toString(), Charset.forName("UTF-8"));
+            StringBody nameBody      = new StringBody(name, ContentType.MULTIPART_FORM_DATA.toString(), Charset.forName("UTF-8"));
+            StringBody uploadBody    = new StringBody("Test Test Test", ContentType.DEFAULT_BINARY.toString(), Charset.forName("UTF-8"));
 
-            upload.addFormData("url", "http://example.org/" + name, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            MultipartEntity multipartEntity = new MultipartEntity();
+            multipartEntity.addPart("package_id", packageIdBody);
+            multipartEntity.addPart("name", nameBody);
+            multipartEntity.addPart("upload", uploadBody);
 
-            upload.addPart(data, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            HttpClient httpClient = new DefaultHttpClient();
+            
+            HttpPost request = new HttpPost(_ckanRootURL + "/post");
+//            HttpPost request = new HttpPost(_ckanRootURL + "/api/action/resource_create");
+            request.addHeader("Authorization", _apiKey);
+            request.setEntity(multipartEntity);
 
-            request.header("Authorization", _apiKey);
-            request.body(MediaType.MULTIPART_FORM_DATA_TYPE, upload);
+            HttpResponse response = httpClient.execute(request);
 
-            ClientResponse<ResourceUpdaterResponceDTO> response = request.post(new GenericType<ResourceUpdaterResponceDTO>() {});
-
-            if (response.getStatus() == HttpResponseCodes.SC_OK)
+            if (response.getStatusLine() == null)
             {
-                String error = response.getEntity(String.class);
-                logger.log(Level.FINE, "Success: [" + error + "]");
-            }
-            else if (response.getStatus() != HttpResponseCodes.SC_CONFLICT)
-            {
-                String error = response.getEntity(String.class);
-                logger.log(Level.WARNING, "Error: [" + error + "]");
+                String error = response.getEntity().toString();
+                logger.log(Level.WARNING, "Success: [" + error + "]");
             }
             else
-                logger.log(Level.WARNING, "DataBrokerClient.getDataBrokerSummaries: status = " + response.getStatus());
+                logger.log(Level.WARNING, "Problems with ckan filestore api invoke: status = " + response.getStatusLine());
         }
         catch (Throwable throwable)
         {
@@ -144,7 +151,6 @@ public class FileStoreCKANDataService implements DataService
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> DataProvider<T> getDataProvider(Class<T> dataClass)
     {
         return null;

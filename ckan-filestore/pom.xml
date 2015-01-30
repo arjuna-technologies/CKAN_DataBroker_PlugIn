@@ -21,24 +21,13 @@
 
     <dependencies>
         <dependency>
-            <!-- JBossAS-7.1.1.Final
-            <groupId>org.jboss.spec.javax.ws.rs</groupId>
-            <artifactId>jboss-jaxrs-api_1.1_spec</artifactId>
-            -->
-            <!-- WildFly-8.1.0.Final -->
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>jaxrs-api</artifactId>
-            <!-- -->
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-jaxrs</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-multipart-provider</artifactId>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -56,6 +45,12 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+	        <groupId>commons-logging</groupId>
+	        <artifactId>commons-logging</artifactId>
+	        <version>1.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
