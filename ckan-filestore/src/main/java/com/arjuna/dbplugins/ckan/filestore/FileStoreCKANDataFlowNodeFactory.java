@@ -17,7 +17,6 @@ import com.arjuna.databroker.data.InvalidNameException;
 import com.arjuna.databroker.data.InvalidPropertyException;
 import com.arjuna.databroker.data.MissingMetaPropertyException;
 import com.arjuna.databroker.data.MissingPropertyException;
-import com.arjuna.dbplugins.ckan.filestore.dataflownodes.FileStoreCKANDataService;
 
 public class FileStoreCKANDataFlowNodeFactory implements DataFlowNodeFactory
 {

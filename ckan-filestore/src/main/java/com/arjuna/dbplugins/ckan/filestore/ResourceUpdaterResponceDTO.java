@@ -2,7 +2,7 @@
  * Copyright (c) 2014-2015, Arjuna Technologies Limited, Newcastle-upon-Tyne, England. All rights reserved.
  */
 
-package com.arjuna.dbplugins.ckan.filestore.dataflownodes;
+package com.arjuna.dbplugins.ckan.filestore;
 
 import java.io.Serializable;
 
