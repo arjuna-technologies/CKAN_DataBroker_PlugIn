@@ -4,10 +4,7 @@
 
 package com.arjuna.dbplugins.ckan.filestore;
 
-import java.io.File;
-import java.lang.annotation.Annotation;
 import java.nio.charset.Charset;
-import java.nio.charset.spi.CharsetProvider;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -16,17 +13,15 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.codec.Charsets;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+
 import com.arjuna.databroker.data.DataConsumer;
 import com.arjuna.databroker.data.DataFlow;
 import com.arjuna.databroker.data.DataProvider;
@@ -110,31 +105,36 @@ public class FileStoreCKANDataService implements DataService
         try
         {
             String name = UUID.randomUUID().toString();
-            StringBody packageIdBody = new StringBody(_packageId, ContentType.MULTIPART_FORM_DATA.toString(), Charset.forName("UTF-8"));
-            StringBody nameBody      = new StringBody(name, ContentType.MULTIPART_FORM_DATA.toString(), Charset.forName("UTF-8"));
-            StringBody uploadBody    = new StringBody("Test Test Test", ContentType.DEFAULT_BINARY.toString(), Charset.forName("UTF-8"));
+            StringBody packageIdBody = new StringBody(_packageId, ContentType.MULTIPART_FORM_DATA);
+            StringBody nameBody      = new StringBody(name, ContentType.MULTIPART_FORM_DATA);
+            StringBody uploadBody    = new StringBody("Test Test Test", ContentType.DEFAULT_BINARY);
 
-            MultipartEntity multipartEntity = new MultipartEntity();
-            multipartEntity.addPart("package_id", packageIdBody);
-            multipartEntity.addPart("name", nameBody);
-            multipartEntity.addPart("upload", uploadBody);
+            MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
+            multipartEntityBuilder.addPart("package_id", packageIdBody);
+            multipartEntityBuilder.addPart("name", nameBody);
+            multipartEntityBuilder.addPart("upload", uploadBody);
 
-            HttpClient httpClient = new DefaultHttpClient();
-            
-            HttpPost request = new HttpPost(_ckanRootURL + "/post");
+            HttpClient httpClient = HttpClientBuilder.create().build();
+
+            HttpPost request = new HttpPost(_ckanRootURL + "/echo");
+//            HttpPost request = new HttpPost(_ckanRootURL + "/post");
 //            HttpPost request = new HttpPost(_ckanRootURL + "/api/action/resource_create");
             request.addHeader("Authorization", _apiKey);
-            request.setEntity(multipartEntity);
+            request.setEntity(multipartEntityBuilder.build());
 
             HttpResponse response = httpClient.execute(request);
 
             if (response.getStatusLine() == null)
             {
                 String error = response.getEntity().toString();
-                logger.log(Level.WARNING, "Success: [" + error + "]");
+                logger.log(Level.WARNING, "Success: [" + response.getStatusLine() + "][" + error + "]");
             }
             else
+            {
+                String error = response.getEntity().toString();
+                logger.log(Level.WARNING, "Success: [" + response.getStatusLine() + "][" + error + "]");
                 logger.log(Level.WARNING, "Problems with ckan filestore api invoke: status = " + response.getStatusLine());
+            }
         }
         catch (Throwable throwable)
         {
