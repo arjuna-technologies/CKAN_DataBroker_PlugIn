@@ -21,6 +21,24 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${version.org.apache.httpcomponents}</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <version>${version.org.apache.httpcomponents}</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>${version.org.apache.httpcomponents}</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
             <groupId>com.arjuna.dbplugins.ckan</groupId>
             <artifactId>ckan-plugin</artifactId>
             <version>1.0.0p1m1</version>
@@ -42,6 +60,21 @@
                 <configuration>
                     <includeLibInApplicationXml>true</includeLibInApplicationXml>
                     <modules>
+                        <jarModule>
+                            <groupId>org.apache.httpcomponents</groupId>
+                            <artifactId>httpclient</artifactId>
+                            <includeInApplicationXml>true</includeInApplicationXml>
+                        </jarModule>
+                        <jarModule>
+                            <groupId>org.apache.httpcomponents</groupId>
+                            <artifactId>httpmime</artifactId>
+                            <includeInApplicationXml>true</includeInApplicationXml>
+                        </jarModule>
+                        <jarModule>
+                            <groupId>org.apache.httpcomponents</groupId>
+                            <artifactId>httpcore</artifactId>
+                            <includeInApplicationXml>true</includeInApplicationXml>
+                        </jarModule>
                         <ejbModule>
                             <groupId>com.arjuna.dbplugins.ckan</groupId>
                             <artifactId>ckan-plugin</artifactId>
