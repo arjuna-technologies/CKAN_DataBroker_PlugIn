@@ -99,7 +99,7 @@ public class FileStoreCKANDataService implements DataService
         _apiKey      = _properties.get(APIKEY_PROPERTYNAME);
     }
 
-    public void consume(String data)
+    public void consumeString(String data)
     {
         logger.log(Level.FINE, "FileStoreCKANDataService.consume");
 
@@ -139,6 +139,47 @@ public class FileStoreCKANDataService implements DataService
         }
     }
 
+    public void consumeBytes(byte[] data)
+    {
+        logger.log(Level.FINE, "FileStoreCKANDataService.consume");
+
+        try
+        {
+            String name = UUID.randomUUID().toString();
+            StringBody packageIdBody = new StringBody(_packageId, ContentType.MULTIPART_FORM_DATA);
+            StringBody nameBody      = new StringBody(name, ContentType.MULTIPART_FORM_DATA);
+
+            MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
+            multipartEntityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+            multipartEntityBuilder.addPart("package_id", packageIdBody);
+            multipartEntityBuilder.addPart("name", nameBody);
+            multipartEntityBuilder.addBinaryBody("upload", data, ContentType.DEFAULT_BINARY, name);
+
+            HttpClient httpClient = HttpClientBuilder.create().build();
+
+            HttpPost request = new HttpPost(_ckanRootURL + "/api/action/resource_create");
+            request.addHeader("Authorization", _apiKey);
+            request.setEntity(multipartEntityBuilder.build());
+
+            HttpResponse response = httpClient.execute(request);
+
+            if ((response.getStatusLine() != null) && (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK))
+            {
+                logger.log(Level.WARNING, "Problems with ckan filestore api invoke: status = " + response.getStatusLine());
+                if (logger.isLoggable(Level.FINER))
+                {
+                    String responseMessage = EntityUtils.toString(response.getEntity());
+                    logger.log(Level.FINER, "Reponse message: [" + responseMessage + "]");
+                }
+            }
+        }
+        catch (Throwable throwable)
+        {
+            logger.log(Level.WARNING, "Problems with ckan filestore api invoke", throwable);
+        }
+    }
+
+
     @Override
     public Collection<Class<?>> getDataProviderDataClasses()
     {
@@ -159,6 +200,7 @@ public class FileStoreCKANDataService implements DataService
         Set<Class<?>> dataConsumerDataClasses = new HashSet<Class<?>>();
 
         dataConsumerDataClasses.add(String.class);
+        dataConsumerDataClasses.add(byte[].class);
 
         return dataConsumerDataClasses;
     }
@@ -168,7 +210,9 @@ public class FileStoreCKANDataService implements DataService
     public <T> DataConsumer<T> getDataConsumer(Class<T> dataClass)
     {
         if (dataClass == String.class)
-            return (DataConsumer<T>) _dataConsumer;
+            return (DataConsumer<T>) _dataConsumerString;
+        else if (dataClass == byte[].class)
+            return (DataConsumer<T>) _dataConsumerBytes;
         else
             return null;
     }
@@ -181,5 +225,7 @@ public class FileStoreCKANDataService implements DataService
     private String               _name;
     private Map<String, String>  _properties;
     @DataConsumerInjection(methodName="consume")
-    private DataConsumer<String> _dataConsumer;
+    private DataConsumer<String> _dataConsumerString;
+    @DataConsumerInjection(methodName="consume")
+    private DataConsumer<byte[]> _dataConsumerBytes;
 }
