@@ -224,8 +224,8 @@ public class FileStoreCKANDataService implements DataService
     private DataFlow             _dataFlow;
     private String               _name;
     private Map<String, String>  _properties;
-    @DataConsumerInjection(methodName="consume")
+    @DataConsumerInjection(methodName="consumeString")
     private DataConsumer<String> _dataConsumerString;
-    @DataConsumerInjection(methodName="consume")
+    @DataConsumerInjection(methodName="consumeBytes")
     private DataConsumer<byte[]> _dataConsumerBytes;
 }
