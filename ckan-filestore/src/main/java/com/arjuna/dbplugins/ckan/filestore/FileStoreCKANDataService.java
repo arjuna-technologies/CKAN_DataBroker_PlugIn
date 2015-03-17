@@ -4,25 +4,24 @@
 
 package com.arjuna.dbplugins.ckan.filestore;
 
-import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
+import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.api.ContentProvider;
+import org.eclipse.jetty.client.api.ContentResponse;
+import org.eclipse.jetty.client.api.Request;
+import org.eclipse.jetty.client.api.Request.ContentListener;
+import org.eclipse.jetty.client.util.BytesContentProvider;
+import org.eclipse.jetty.client.util.FormContentProvider;
+import org.eclipse.jetty.client.util.StringContentProvider;
+import org.eclipse.jetty.http.HttpMethod;
+import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.util.Fields;
 import com.arjuna.databroker.data.DataConsumer;
 import com.arjuna.databroker.data.DataFlow;
 import com.arjuna.databroker.data.DataProvider;
@@ -31,6 +30,8 @@ import com.arjuna.databroker.data.jee.annotation.DataConsumerInjection;
 import com.arjuna.databroker.data.jee.annotation.PostConfig;
 import com.arjuna.databroker.data.jee.annotation.PostCreated;
 import com.arjuna.databroker.data.jee.annotation.PostRecovery;
+import com.arjuna.databroker.data.jee.annotation.PreConfig;
+import com.arjuna.databroker.data.jee.annotation.PreDelete;
 
 public class FileStoreCKANDataService implements DataService
 {
@@ -92,11 +93,36 @@ public class FileStoreCKANDataService implements DataService
     @PostConfig
     @PostCreated
     @PostRecovery
-    public void config()
+    public void setup()
     {
         _ckanRootURL = _properties.get(CKANROOTURL_PROPERTYNAME);
         _packageId   = _properties.get(PACKAGEID_PROPERTYNAME);
         _apiKey      = _properties.get(APIKEY_PROPERTYNAME);
+
+        try
+        {
+            _httpClient = new HttpClient();
+            _httpClient.start();
+        }
+        catch (Throwable throwable)
+        {
+            logger.log(Level.FINER, "Problem in setup of httpClient", throwable);
+        }
+    }
+
+    @PreConfig
+    @PreDelete
+    public void teardown()
+    {
+        try
+        {
+            _httpClient.stop();
+            _httpClient = null;
+        }
+        catch (Throwable throwable)
+        {
+            logger.log(Level.FINER, "Problem in teardown of httpClient", throwable);
+        }
     }
 
     public void consumeString(String data)
@@ -105,33 +131,21 @@ public class FileStoreCKANDataService implements DataService
 
         try
         {
-            String name = UUID.randomUUID().toString();
-            StringBody packageIdBody = new StringBody(_packageId, ContentType.MULTIPART_FORM_DATA);
-            StringBody nameBody      = new StringBody(name, ContentType.MULTIPART_FORM_DATA);
+            MultipartFormDataContentProvider multipartFormDataContentProvider = new MultipartFormDataContentProvider();
+            multipartFormDataContentProvider.getParts().add(new StringContentProvider(_packageId));
+            multipartFormDataContentProvider.getParts().add(new StringContentProvider(_apiKey));
+            multipartFormDataContentProvider.getParts().add(new BytesContentProvider("application/octet-stream", data.getBytes()));
 
-            MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
-            multipartEntityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-            multipartEntityBuilder.addPart("package_id", packageIdBody);
-            multipartEntityBuilder.addPart("name", nameBody);
-            multipartEntityBuilder.addBinaryBody("upload", data.getBytes(Charset.forName("UTF-8")), ContentType.DEFAULT_BINARY, name);
+//            Request request = _httpClient.newRequest(_ckanRootURL + "/api/action/resource_create");
+            Request request = _httpClient.newRequest(_ckanRootURL);
+            request.method(HttpMethod.POST);
+//            request.getHeaders().add("Content-Type", "multipart/form-data");
+            request.content(multipartFormDataContentProvider);
 
-            HttpClient httpClient = HttpClientBuilder.create().build();
+            ContentResponse response = request.send();
 
-            HttpPost request = new HttpPost(_ckanRootURL + "/api/action/resource_create");
-            request.addHeader("Authorization", _apiKey);
-            request.setEntity(multipartEntityBuilder.build());
-
-            HttpResponse response = httpClient.execute(request);
-
-            if ((response.getStatusLine() != null) && (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK))
-            {
-                logger.log(Level.WARNING, "Problems with ckan filestore api invoke: status = " + response.getStatusLine());
-                if (logger.isLoggable(Level.FINER))
-                {
-                    String responseMessage = EntityUtils.toString(response.getEntity());
-                    logger.log(Level.FINER, "Reponse message: [" + responseMessage + "]");
-                }
-            }
+            if (response.getStatus() != HttpStatus.OK_200)
+                logger.log(Level.WARNING, "Problems with ckan filestore api invoke: status = " + response.getStatus());
         }
         catch (Throwable throwable)
         {
@@ -145,33 +159,6 @@ public class FileStoreCKANDataService implements DataService
 
         try
         {
-            String name = UUID.randomUUID().toString();
-            StringBody packageIdBody = new StringBody(_packageId, ContentType.MULTIPART_FORM_DATA);
-            StringBody nameBody      = new StringBody(name, ContentType.MULTIPART_FORM_DATA);
-
-            MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
-            multipartEntityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-            multipartEntityBuilder.addPart("package_id", packageIdBody);
-            multipartEntityBuilder.addPart("name", nameBody);
-            multipartEntityBuilder.addBinaryBody("upload", data, ContentType.DEFAULT_BINARY, name);
-
-            HttpClient httpClient = HttpClientBuilder.create().build();
-
-            HttpPost request = new HttpPost(_ckanRootURL + "/api/action/resource_create");
-            request.addHeader("Authorization", _apiKey);
-            request.setEntity(multipartEntityBuilder.build());
-
-            HttpResponse response = httpClient.execute(request);
-
-            if ((response.getStatusLine() != null) && (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK))
-            {
-                logger.log(Level.WARNING, "Problems with ckan filestore api invoke: status = " + response.getStatusLine());
-                if (logger.isLoggable(Level.FINER))
-                {
-                    String responseMessage = EntityUtils.toString(response.getEntity());
-                    logger.log(Level.FINER, "Reponse message: [" + responseMessage + "]");
-                }
-            }
         }
         catch (Throwable throwable)
         {
@@ -220,6 +207,8 @@ public class FileStoreCKANDataService implements DataService
     private String _ckanRootURL;
     private String _packageId;
     private String _apiKey;
+
+    private HttpClient _httpClient;
 
     private DataFlow             _dataFlow;
     private String               _name;

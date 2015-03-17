@@ -16,8 +16,8 @@ import com.arjuna.databroker.data.connector.ObservableDataProvider;
 import com.arjuna.databroker.data.connector.ObserverDataConsumer;
 import com.arjuna.databroker.data.core.DataFlowNodeLifeCycleControl;
 import com.arjuna.dbplugins.ckan.filestore.FileStoreCKANDataService;
-import com.arjuna.dbutilities.testsupport.dataflownodes.dummy.DummyDataSource;
-import com.arjuna.dbutilities.testsupport.dataflownodes.lifecycle.TestJEEDataFlowNodeLifeCycleControl;
+import com.arjuna.dbutils.testsupport.dataflownodes.dummy.DummyDataSource;
+import com.arjuna.dbutils.testsupport.dataflownodes.lifecycle.TestJEEDataFlowNodeLifeCycleControl;
 
 public class FileStoreCKANDataServiceTest
 {
@@ -53,7 +53,7 @@ public class FileStoreCKANDataServiceTest
             ((ObservableDataProvider<String>) dummyDataSource.getDataProvider(String.class)).addDataConsumer((ObserverDataConsumer<String>) fileStoreCKANDataService.getDataConsumer(String.class));
 
             dummyDataSource.sendData("Test Data, Test Text");
-            
+
             dataFlowNodeLifeCycleControl.removeDataFlowNode(dummyDataSource);
             dataFlowNodeLifeCycleControl.removeDataFlowNode(fileStoreCKANDataService);
         }
