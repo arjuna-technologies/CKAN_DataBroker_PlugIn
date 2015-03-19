@@ -159,6 +159,22 @@ public class FileStoreCKANDataService implements DataService
 
         try
         {
+            MultipartFormDataContentProvider multipartFormDataContentProvider = new MultipartFormDataContentProvider(UUID.randomUUID().toString());
+            multipartFormDataContentProvider.getParts().add(new MultipartFormDataContentProvider.Part("upload", "upload", new BytesContentProvider("application/octet-stream", data)));
+            multipartFormDataContentProvider.getParts().add(new MultipartFormDataContentProvider.Part("package_id", new StringContentProvider("form-data", _packageId, Charset.defaultCharset())));
+
+            Request request = _httpClient.newRequest(_ckanRootURL + "/api/action/resource_create");
+            request.method(HttpMethod.POST);
+            request.header(HttpHeader.AUTHORIZATION, _apiKey);
+            request.content(multipartFormDataContentProvider);
+
+            ContentResponse response = request.send();
+
+            if (response.getStatus() != HttpStatus.OK_200)
+            {
+                logger.log(Level.WARNING, "Problems with ckan filestore api invoke: status  = " + response.getStatus());
+                logger.log(Level.WARNING, "                                         content = [" + response.getContentAsString() + "]");
+            }
         }
         catch (Throwable throwable)
         {
