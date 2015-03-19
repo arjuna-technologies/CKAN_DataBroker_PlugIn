@@ -4,24 +4,23 @@
 
 package com.arjuna.dbplugins.ckan.filestore;
 
+import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.api.ContentProvider;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.api.Request;
-import org.eclipse.jetty.client.api.Request.ContentListener;
 import org.eclipse.jetty.client.util.BytesContentProvider;
-import org.eclipse.jetty.client.util.FormContentProvider;
 import org.eclipse.jetty.client.util.StringContentProvider;
+import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.util.Fields;
 import com.arjuna.databroker.data.DataConsumer;
 import com.arjuna.databroker.data.DataFlow;
 import com.arjuna.databroker.data.DataProvider;
@@ -131,21 +130,22 @@ public class FileStoreCKANDataService implements DataService
 
         try
         {
-            MultipartFormDataContentProvider multipartFormDataContentProvider = new MultipartFormDataContentProvider();
-            multipartFormDataContentProvider.getParts().add(new StringContentProvider(_packageId));
-            multipartFormDataContentProvider.getParts().add(new StringContentProvider(_apiKey));
-            multipartFormDataContentProvider.getParts().add(new BytesContentProvider("application/octet-stream", data.getBytes()));
+            MultipartFormDataContentProvider multipartFormDataContentProvider = new MultipartFormDataContentProvider(UUID.randomUUID().toString());
+            multipartFormDataContentProvider.getParts().add(new MultipartFormDataContentProvider.Part("upload", "upload", new BytesContentProvider("application/octet-stream", data.getBytes())));
+            multipartFormDataContentProvider.getParts().add(new MultipartFormDataContentProvider.Part("package_id", new StringContentProvider("form-data", _packageId, Charset.defaultCharset())));
 
-//            Request request = _httpClient.newRequest(_ckanRootURL + "/api/action/resource_create");
-            Request request = _httpClient.newRequest(_ckanRootURL);
+            Request request = _httpClient.newRequest(_ckanRootURL + "/api/action/resource_create");
             request.method(HttpMethod.POST);
-//            request.getHeaders().add("Content-Type", "multipart/form-data");
+            request.header(HttpHeader.AUTHORIZATION, _apiKey);
             request.content(multipartFormDataContentProvider);
 
             ContentResponse response = request.send();
 
             if (response.getStatus() != HttpStatus.OK_200)
-                logger.log(Level.WARNING, "Problems with ckan filestore api invoke: status = " + response.getStatus());
+            {
+                logger.log(Level.WARNING, "Problems with ckan filestore api invoke: status  = " + response.getStatus());
+                logger.log(Level.WARNING, "                                         content = [" + response.getContentAsString() + "]");
+            }
         }
         catch (Throwable throwable)
         {
@@ -165,7 +165,6 @@ public class FileStoreCKANDataService implements DataService
             logger.log(Level.WARNING, "Problems with ckan filestore api invoke", throwable);
         }
     }
-
 
     @Override
     public Collection<Class<?>> getDataProviderDataClasses()

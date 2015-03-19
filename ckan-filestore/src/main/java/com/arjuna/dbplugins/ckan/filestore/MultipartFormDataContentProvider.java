@@ -9,9 +9,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.eclipse.jetty.client.api.ContentProvider;
 import org.eclipse.jetty.client.util.AbstractTypedContentProvider;
 
 /*
@@ -20,13 +17,12 @@ import org.eclipse.jetty.client.util.AbstractTypedContentProvider;
 
 public class MultipartFormDataContentProvider extends AbstractTypedContentProvider
 {
-    private static final Logger logger = Logger.getLogger(MultipartFormDataContentProvider.class.getName());
-
-    public MultipartFormDataContentProvider()
+    public MultipartFormDataContentProvider(String boundaryText)
     {
-        super("multipart/form-data");
+        super("multipart/form-data; boundary=" + boundaryText);
 
-        _contentProviders = new LinkedList<ContentProvider>();
+        _boundaryText = boundaryText;
+        _parts        = new LinkedList<Part>();
     }
 
     @Override
@@ -40,15 +36,10 @@ public class MultipartFormDataContentProvider extends AbstractTypedContentProvid
     {
         return new Iterator<ByteBuffer>()
         {
-            private Iterator<ContentProvider> _contentProviderIterator = _contentProviders.iterator();
-            private Iterator<ByteBuffer>      _iterator                = null;
-
             @Override
             public boolean hasNext()
             {
-                boolean hasNext = (_contentProviderIterator.hasNext() || ((_iterator != null) && _iterator.hasNext()));
-
-                logger.log(Level.INFO, "hasNext: " + hasNext);
+                boolean hasNext = _partIterator != null;
 
                 return hasNext;
             }
@@ -56,17 +47,59 @@ public class MultipartFormDataContentProvider extends AbstractTypedContentProvid
             @Override
             public ByteBuffer next()
             {
-                logger.log(Level.INFO, "next: " + _iterator + ", " + _contentProviderIterator);
+                if ( _partIterator == null)
+                    throw new NoSuchElementException();
 
-                if ((_iterator == null) || (! _iterator.hasNext()))
+                if ((_byteBufferIterator != null) && (! _byteBufferIterator.hasNext()))
                 {
-                    if (_contentProviderIterator.hasNext())
-                        _iterator = _contentProviderIterator.next().iterator();
-                    else
-                        throw new NoSuchElementException();
+                    _part               = null;
+                    _byteBufferIterator = null;
                 }
 
-                return _iterator.next();
+                if (_part == null)
+                {
+                    if (_partIterator.hasNext())
+                        _part = _partIterator.next();
+                    else
+                    {
+                        _partIterator = null;
+
+                        StringBuffer seperatorText = new StringBuffer();
+                        seperatorText.append("\r\n--");
+                        seperatorText.append(_boundaryText);
+                        seperatorText.append("--\r\n");
+
+                        return ByteBuffer.wrap(seperatorText.toString().getBytes());
+                    }
+                }
+
+                if (_byteBufferIterator == null)
+                {
+                    _byteBufferIterator = _part.getContentProvider().iterator();
+
+                    StringBuffer seperatorText = new StringBuffer();
+                    seperatorText.append("\r\n--");
+                    seperatorText.append(_boundaryText);
+                    seperatorText.append("\r\nContent-Disposition: form-data; name=\"");
+                    seperatorText.append(_part.getName());
+                    if (_part.getFilename() != null)
+                    {
+                        seperatorText.append("\"; filename=\"");
+                        seperatorText.append(_part.getFilename());
+                    }
+                    seperatorText.append("\"\r\n");
+                    if (! "form-data".equals(_part.getContentProvider().getContentType()))
+                    {
+                        seperatorText.append("Content-Type: ");
+                        seperatorText.append(_part.getContentProvider().getContentType());
+                        seperatorText.append("\r\n");
+                    }
+                    seperatorText.append("\r\n");
+
+                    return ByteBuffer.wrap(seperatorText.toString().getBytes());
+                }
+                else
+                    return _byteBufferIterator.next();
             }
 
             @Override
@@ -74,15 +107,54 @@ public class MultipartFormDataContentProvider extends AbstractTypedContentProvid
             {
                 throw new UnsupportedOperationException();
             }
+
+            private Iterator<Part>       _partIterator       = _parts.iterator();
+            private Part                 _part               = null;
+            private Iterator<ByteBuffer> _byteBufferIterator = null;
         };
     }
 
-    public List<ContentProvider> getParts()
+    public List<Part> getParts()
     {
-        logger.log(Level.INFO, "getParts: " + _contentProviders.size());
-
-        return _contentProviders;
+        return _parts;
     }
 
-    private List<ContentProvider> _contentProviders;
+    public static class Part
+    {
+        public Part(String name, Typed contentProvider)
+        {
+            _name            = name;
+            _filename        = null;
+            _contentProvider = contentProvider;
+        }
+
+        public Part(String name, String filename, Typed contentProvider)
+        {
+            _name            = name;
+            _filename        = filename;
+            _contentProvider = contentProvider;
+        }
+
+        public String getName()
+        {
+            return _name;
+        }
+
+        public String getFilename()
+        {
+            return _filename;
+        }
+
+        public Typed getContentProvider()
+        {
+            return _contentProvider;
+        }
+
+        private String _name;
+        private String _filename;
+        private Typed  _contentProvider;
+    }
+
+    private String     _boundaryText;
+    private List<Part> _parts;
 }
