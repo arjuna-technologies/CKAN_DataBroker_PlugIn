@@ -4,6 +4,8 @@
 
 package com.arjuna.dbplugins.ckan.filestore;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
@@ -13,14 +15,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.client.api.ContentResponse;
-import org.eclipse.jetty.client.api.Request;
-import org.eclipse.jetty.client.util.BytesContentProvider;
-import org.eclipse.jetty.client.util.StringContentProvider;
-import org.eclipse.jetty.http.HttpHeader;
-import org.eclipse.jetty.http.HttpMethod;
-import org.eclipse.jetty.http.HttpStatus;
 import com.arjuna.databroker.data.DataConsumer;
 import com.arjuna.databroker.data.DataFlow;
 import com.arjuna.databroker.data.DataProvider;
@@ -97,31 +91,12 @@ public class FileStoreCKANDataService implements DataService
         _ckanRootURL = _properties.get(CKANROOTURL_PROPERTYNAME);
         _packageId   = _properties.get(PACKAGEID_PROPERTYNAME);
         _apiKey      = _properties.get(APIKEY_PROPERTYNAME);
-
-        try
-        {
-            _httpClient = new HttpClient();
-            _httpClient.start();
-        }
-        catch (Throwable throwable)
-        {
-            logger.log(Level.FINER, "Problem in setup of httpClient", throwable);
-        }
     }
 
     @PreConfig
     @PreDelete
     public void teardown()
     {
-        try
-        {
-            _httpClient.stop();
-            _httpClient = null;
-        }
-        catch (Throwable throwable)
-        {
-            logger.log(Level.FINER, "Problem in teardown of httpClient", throwable);
-        }
     }
 
     public void consumeString(String data)
@@ -130,21 +105,16 @@ public class FileStoreCKANDataService implements DataService
 
         try
         {
-            MultipartFormDataContentProvider multipartFormDataContentProvider = new MultipartFormDataContentProvider(UUID.randomUUID().toString());
-            multipartFormDataContentProvider.getParts().add(new MultipartFormDataContentProvider.Part("upload", "upload", new BytesContentProvider("application/octet-stream", data.getBytes())));
-            multipartFormDataContentProvider.getParts().add(new MultipartFormDataContentProvider.Part("package_id", new StringContentProvider("form-data", _packageId, Charset.defaultCharset())));
+            URL uploadURL  = new URL(_ckanRootURL + "/api/action/resource_create");
 
-            Request request = _httpClient.newRequest(_ckanRootURL + "/api/action/resource_create");
-            request.method(HttpMethod.POST);
-            request.header(HttpHeader.AUTHORIZATION, _apiKey);
-            request.content(multipartFormDataContentProvider);
+            HttpURLConnection uploadConnection = (HttpURLConnection) uploadURL.openConnection();
+            uploadConnection.setRequestMethod("POST");
 
-            ContentResponse response = request.send();
+            uploadConnection.connect();
 
-            if (response.getStatus() != HttpStatus.OK_200)
+            if (uploadConnection.getResponseCode() != 200)
             {
-                logger.log(Level.WARNING, "Problems with ckan filestore api invoke: status  = " + response.getStatus());
-                logger.log(Level.WARNING, "                                         content = [" + response.getContentAsString() + "]");
+                logger.log(Level.WARNING, "Problems with ckan filestore api invoke: status  = " + uploadConnection.getResponseMessage());
             }
         }
         catch (Throwable throwable)
@@ -206,8 +176,6 @@ public class FileStoreCKANDataService implements DataService
     private String _ckanRootURL;
     private String _packageId;
     private String _apiKey;
-
-    private HttpClient _httpClient;
 
     private DataFlow             _dataFlow;
     private String               _name;

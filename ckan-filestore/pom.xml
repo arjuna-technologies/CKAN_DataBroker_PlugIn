@@ -21,12 +21,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-client</artifactId>
-            <version>${version.org.eclipse.jetty}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>com.arjuna.databroker</groupId>
             <artifactId>data-common</artifactId>
             <version>${version.com.arjuna.databroker}</version>

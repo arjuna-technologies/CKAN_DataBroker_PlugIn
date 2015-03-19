@@ -21,12 +21,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-client</artifactId>
-            <version>${version.org.eclipse.jetty}</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
             <groupId>com.arjuna.dbplugins.ckan</groupId>
             <artifactId>ckan-plugin</artifactId>
             <version>1.0.0p1m1</version>
@@ -48,11 +42,6 @@
                 <configuration>
                     <includeLibInApplicationXml>true</includeLibInApplicationXml>
                     <modules>
-                        <jarModule>
-                            <groupId>org.eclipse.jetty</groupId>
-                            <artifactId>jetty-client</artifactId>
-                            <includeInApplicationXml>true</includeInApplicationXml>
-                        </jarModule>
                         <ejbModule>
                             <groupId>com.arjuna.dbplugins.ckan</groupId>
                             <artifactId>ckan-plugin</artifactId>
