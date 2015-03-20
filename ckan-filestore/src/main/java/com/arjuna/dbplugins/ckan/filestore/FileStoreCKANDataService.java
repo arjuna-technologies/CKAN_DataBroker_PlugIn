@@ -4,9 +4,10 @@
 
 package com.arjuna.dbplugins.ckan.filestore;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -107,15 +108,34 @@ public class FileStoreCKANDataService implements DataService
         {
             URL uploadURL  = new URL(_ckanRootURL + "/api/action/resource_create");
 
-            HttpURLConnection uploadConnection = (HttpURLConnection) uploadURL.openConnection();
-            uploadConnection.setRequestMethod("POST");
-
-            uploadConnection.connect();
-
-            if (uploadConnection.getResponseCode() != 200)
+            String boundaryText = UUID.randomUUID().toString();
+            
+            HttpURLConnection resourceCreateConnection = (HttpURLConnection) uploadURL.openConnection();
+            resourceCreateConnection.setDoOutput(true);
+            resourceCreateConnection.setDoInput(true);
+            resourceCreateConnection.setInstanceFollowRedirects(false);
+            resourceCreateConnection.setRequestMethod("POST");
+            resourceCreateConnection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundaryText);
+            resourceCreateConnection.setRequestProperty("Authorization", _apiKey);
+            resourceCreateConnection.setUseCaches(false);
+            
+            try
             {
-                logger.log(Level.WARNING, "Problems with ckan filestore api invoke: status  = " + uploadConnection.getResponseMessage());
+                OutputStream outputStream = resourceCreateConnection.getOutputStream();
+            
+                outputFormDataPart(outputStream, "package_id", null, _packageId.getBytes(), "form-data", boundaryText, true);
+                outputFormDataPart(outputStream, "upload", "upload", data.getBytes(), "application/octet-stream", boundaryText, false);
+                outputEndBoundary(outputStream, boundaryText);
+
+                outputStream.close();
             }
+            catch (IOException ioException)
+            {
+                logger.log(Level.WARNING, "Problems writing to ckan filestore api" + ioException);
+            }
+
+            if (resourceCreateConnection.getResponseCode() != 200)
+                logger.log(Level.WARNING, "Problems with ckan filestore api invoke: status  = " + resourceCreateConnection.getResponseMessage());
         }
         catch (Throwable throwable)
         {
@@ -129,11 +149,77 @@ public class FileStoreCKANDataService implements DataService
 
         try
         {
+            URL uploadURL  = new URL(_ckanRootURL + "/api/action/resource_create");
+
+            String boundaryText = UUID.randomUUID().toString();
+            
+            HttpURLConnection resourceCreateConnection = (HttpURLConnection) uploadURL.openConnection();
+            resourceCreateConnection.setDoOutput(true);
+            resourceCreateConnection.setDoInput(true);
+            resourceCreateConnection.setInstanceFollowRedirects(false);
+            resourceCreateConnection.setRequestMethod("POST");
+            resourceCreateConnection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundaryText);
+            resourceCreateConnection.setRequestProperty("Authorization", _apiKey);
+            resourceCreateConnection.setUseCaches(false);
+            
+            try
+            {
+                OutputStream outputStream = resourceCreateConnection.getOutputStream();
+            
+                outputFormDataPart(outputStream, "package_id", null, _packageId.getBytes(), "form-data", boundaryText, true);
+                outputFormDataPart(outputStream, "upload", "upload", data, "application/octet-stream", boundaryText, false);
+                outputEndBoundary(outputStream, boundaryText);
+
+                outputStream.close();
+            }
+            catch (IOException ioException)
+            {
+                logger.log(Level.WARNING, "Problems writing to ckan filestore api" + ioException);
+            }
+
+            if (resourceCreateConnection.getResponseCode() != 200)
+                logger.log(Level.WARNING, "Problems with ckan filestore api invoke: status  = " + resourceCreateConnection.getResponseMessage());
         }
         catch (Throwable throwable)
         {
             logger.log(Level.WARNING, "Problems with ckan filestore api invoke", throwable);
         }
+    }
+
+    private void outputFormDataPart(OutputStream outputStream, String name, String filename, byte[] value, String contentType, String boundaryText, boolean firstOutput)
+        throws IOException
+    {
+        if (firstOutput)
+            outputStream.write("--".getBytes());
+        else
+            outputStream.write("\r\n--".getBytes());
+        outputStream.write(boundaryText.getBytes());
+        outputStream.write("\r\n".getBytes());
+        outputStream.write("Content-Disposition: form-data; name=\"".getBytes());
+        outputStream.write(name.getBytes());
+        if (filename != null)
+        {
+            outputStream.write("\"; filename=\"".getBytes());
+            outputStream.write(filename.getBytes());            
+        }
+        outputStream.write("\"\r\n".getBytes());
+        if (! "form-data".equals(contentType))
+        {
+            outputStream.write("Content-Type: ".getBytes());
+            outputStream.write(contentType.getBytes());            
+            outputStream.write("\r\n".getBytes());
+        }
+        outputStream.write("\r\n".getBytes());
+        outputStream.write(value);
+        outputStream.flush();
+    }
+
+    private void outputEndBoundary(OutputStream outputStream, String boundaryText)
+        throws IOException
+    {
+        outputStream.write("\r\n--".getBytes());
+        outputStream.write(boundaryText.getBytes());
+        outputStream.write("--\r\n".getBytes());
     }
 
     @Override
