@@ -109,7 +109,7 @@ public class FileStoreDKANDataService implements DataService
             URL uploadURL  = new URL(_dkanRootURL + "/api/action/resource_create");
 
             String boundaryText = UUID.randomUUID().toString();
-            
+
             HttpURLConnection resourceCreateConnection = (HttpURLConnection) uploadURL.openConnection();
             resourceCreateConnection.setDoOutput(true);
             resourceCreateConnection.setDoInput(true);
@@ -118,11 +118,11 @@ public class FileStoreDKANDataService implements DataService
             resourceCreateConnection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundaryText);
             resourceCreateConnection.setRequestProperty("Authorization", _apiKey);
             resourceCreateConnection.setUseCaches(false);
-            
+
             try
             {
                 OutputStream outputStream = resourceCreateConnection.getOutputStream();
-            
+
                 outputFormDataPart(outputStream, "package_id", null, _packageId.getBytes(), "form-data", boundaryText, true);
                 outputFormDataPart(outputStream, "upload", "upload", data.getBytes(), "application/octet-stream", boundaryText, false);
                 outputEndBoundary(outputStream, boundaryText);
@@ -152,7 +152,7 @@ public class FileStoreDKANDataService implements DataService
             URL uploadURL  = new URL(_dkanRootURL + "/api/action/resource_create");
 
             String boundaryText = UUID.randomUUID().toString();
-            
+
             HttpURLConnection resourceCreateConnection = (HttpURLConnection) uploadURL.openConnection();
             resourceCreateConnection.setDoOutput(true);
             resourceCreateConnection.setDoInput(true);
@@ -161,11 +161,11 @@ public class FileStoreDKANDataService implements DataService
             resourceCreateConnection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundaryText);
             resourceCreateConnection.setRequestProperty("Authorization", _apiKey);
             resourceCreateConnection.setUseCaches(false);
-            
+
             try
             {
                 OutputStream outputStream = resourceCreateConnection.getOutputStream();
-            
+
                 outputFormDataPart(outputStream, "package_id", null, _packageId.getBytes(), "form-data", boundaryText, true);
                 outputFormDataPart(outputStream, "upload", "upload", data, "application/octet-stream", boundaryText, false);
                 outputEndBoundary(outputStream, boundaryText);
@@ -200,13 +200,13 @@ public class FileStoreDKANDataService implements DataService
         if (filename != null)
         {
             outputStream.write("\"; filename=\"".getBytes());
-            outputStream.write(filename.getBytes());            
+            outputStream.write(filename.getBytes());
         }
         outputStream.write("\"\r\n".getBytes());
         if (! "form-data".equals(contentType))
         {
             outputStream.write("Content-Type: ".getBytes());
-            outputStream.write(contentType.getBytes());            
+            outputStream.write(contentType.getBytes());
             outputStream.write("\r\n".getBytes());
         }
         outputStream.write("\r\n".getBytes());
