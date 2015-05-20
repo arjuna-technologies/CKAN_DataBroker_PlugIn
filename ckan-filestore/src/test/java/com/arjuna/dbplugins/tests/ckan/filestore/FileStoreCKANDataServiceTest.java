@@ -104,7 +104,7 @@ public class FileStoreCKANDataServiceTest
             fail("Problem in 'createResource': " + throwable);
         }
     }
-/*
+
     @Test
     public void createResourceMap()
     {
@@ -151,5 +151,4 @@ public class FileStoreCKANDataServiceTest
             fail("Problem in 'createResource': " + throwable);
         }
     }
-*/
 }

@@ -127,8 +127,8 @@ public class FileStoreCKANDataService implements DataService
             logger.log(Level.WARNING, "Problems with ckan filestore api invoke", throwable);
         }
     }
-/*
-    public void consumeMap(Map<String, Object> map)
+
+    public void consumeMap(Map map)
     {
         logger.log(Level.FINE, "FileStoreCKANDataService.consumeMap");
 
@@ -147,7 +147,7 @@ public class FileStoreCKANDataService implements DataService
             logger.log(Level.WARNING, "Problems with ckan filestore api invoke", throwable);
         }
     }
-*/
+
     private void uploadResource(byte[] data, String fileName, String resourceName, String resourceFormat, String resourceDescription)
     {
         logger.log(Level.FINE, "FileStoreCKANDataService.consume");
@@ -257,7 +257,7 @@ public class FileStoreCKANDataService implements DataService
 
         dataConsumerDataClasses.add(String.class);
         dataConsumerDataClasses.add(byte[].class);
-//        dataConsumerDataClasses.add(Map.class);
+        dataConsumerDataClasses.add(Map.class);
 
         return dataConsumerDataClasses;
     }
@@ -270,8 +270,8 @@ public class FileStoreCKANDataService implements DataService
             return (DataConsumer<T>) _dataConsumerString;
         else if (dataClass == byte[].class)
             return (DataConsumer<T>) _dataConsumerBytes;
-//        else if (dataClass == Map.class)
-//            return (DataConsumer<T>) _dataConsumerMap;
+        else if (dataClass == Map.class)
+            return (DataConsumer<T>) _dataConsumerMap;
         else
             return null;
     }
@@ -287,6 +287,6 @@ public class FileStoreCKANDataService implements DataService
     private DataConsumer<String>              _dataConsumerString;
     @DataConsumerInjection(methodName="consumeBytes")
     private DataConsumer<byte[]>              _dataConsumerBytes;
-//    @DataConsumerInjection(methodName="consumeMap")
-//    private DataConsumer<Map<String, Object>> _dataConsumerMap;
+    @DataConsumerInjection(methodName="consumeMap")
+    private DataConsumer<Map>                 _dataConsumerMap;
 }
