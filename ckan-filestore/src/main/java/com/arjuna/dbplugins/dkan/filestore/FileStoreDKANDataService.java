@@ -102,6 +102,54 @@ public class FileStoreDKANDataService implements DataService
 
     public void consumeString(String data)
     {
+        logger.log(Level.FINE, "FileStoreDKANDataService.consumeString");
+
+        try
+        {
+            uploadResource(data.getBytes(), null, null, null, null);
+        }
+        catch (Throwable throwable)
+        {
+            logger.log(Level.WARNING, "Problems with dkan filestore api invoke", throwable);
+        }
+    }
+
+    public void consumeBytes(byte[] data)
+    {
+        logger.log(Level.FINE, "FileStoreDKANDataService.consumeBytes");
+
+        try
+        {
+            uploadResource(data, null, null, null, null);
+        }
+        catch (Throwable throwable)
+        {
+            logger.log(Level.WARNING, "Problems with dkan filestore api invoke", throwable);
+        }
+    }
+
+    public void consumeMap(Map map)
+    {
+        logger.log(Level.FINE, "FileStoreDKANDataService.consumeMap");
+
+        try
+        {
+            byte[] data                = (byte[]) map.get("data");
+            String fileName            = (String) map.get("filename");
+            String resourceName        = (String) map.get("resourcename");
+            String resourceFormat      = (String) map.get("resourceformat");
+            String resourceDescription = (String) map.get("resourcedescription");
+
+            uploadResource(data, fileName, resourceName, resourceFormat, resourceDescription);
+        }
+        catch (Throwable throwable)
+        {
+            logger.log(Level.WARNING, "Problems with dkan filestore api invoke", throwable);
+        }
+    }
+
+    private void uploadResource(byte[] data, String fileName, String resourceName, String resourceFormat, String resourceDescription)
+    {
         logger.log(Level.FINE, "FileStoreDKANDataService.consume");
 
         try
@@ -124,50 +172,16 @@ public class FileStoreDKANDataService implements DataService
                 OutputStream outputStream = resourceCreateConnection.getOutputStream();
 
                 outputFormDataPart(outputStream, "package_id", null, _packageId.getBytes(), "form-data", boundaryText, true);
-                outputFormDataPart(outputStream, "upload", "upload", data.getBytes(), "application/octet-stream", boundaryText, false);
-                outputEndBoundary(outputStream, boundaryText);
-
-                outputStream.close();
-            }
-            catch (IOException ioException)
-            {
-                logger.log(Level.WARNING, "Problems writing to dkan filestore api" + ioException);
-            }
-
-            if (resourceCreateConnection.getResponseCode() != 200)
-                logger.log(Level.WARNING, "Problems with dkan filestore api invoke: status  = " + resourceCreateConnection.getResponseMessage());
-        }
-        catch (Throwable throwable)
-        {
-            logger.log(Level.WARNING, "Problems with dkan filestore api invoke", throwable);
-        }
-    }
-
-    public void consumeBytes(byte[] data)
-    {
-        logger.log(Level.FINE, "FileStoredKANDataService.consume");
-
-        try
-        {
-            URL uploadURL  = new URL(_dkanRootURL + "/api/action/resource_create");
-
-            String boundaryText = UUID.randomUUID().toString();
-
-            HttpURLConnection resourceCreateConnection = (HttpURLConnection) uploadURL.openConnection();
-            resourceCreateConnection.setDoOutput(true);
-            resourceCreateConnection.setDoInput(true);
-            resourceCreateConnection.setInstanceFollowRedirects(false);
-            resourceCreateConnection.setRequestMethod("POST");
-            resourceCreateConnection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundaryText);
-            resourceCreateConnection.setRequestProperty("Authorization", _apiKey);
-            resourceCreateConnection.setUseCaches(false);
-
-            try
-            {
-                OutputStream outputStream = resourceCreateConnection.getOutputStream();
-
-                outputFormDataPart(outputStream, "package_id", null, _packageId.getBytes(), "form-data", boundaryText, true);
-                outputFormDataPart(outputStream, "upload", "upload", data, "application/octet-stream", boundaryText, false);
+                if (resourceName != null)
+                    outputFormDataPart(outputStream, "name", null, resourceName.getBytes(), "form-data", boundaryText, false);
+                if (resourceFormat != null)
+                    outputFormDataPart(outputStream, "format", null, resourceFormat.getBytes(), "form-data", boundaryText, false);
+                if (resourceDescription != null)
+                    outputFormDataPart(outputStream, "description ", null, resourceDescription.getBytes(), "form-data", boundaryText, false);
+                if (fileName != null)
+                    outputFormDataPart(outputStream, "upload", fileName, data, "application/octet-stream", boundaryText, false);
+                else
+                    outputFormDataPart(outputStream, "upload", "upload", data, "application/octet-stream", boundaryText, false);
                 outputEndBoundary(outputStream, boundaryText);
 
                 outputStream.close();
@@ -243,6 +257,7 @@ public class FileStoreDKANDataService implements DataService
 
         dataConsumerDataClasses.add(String.class);
         dataConsumerDataClasses.add(byte[].class);
+        dataConsumerDataClasses.add(Map.class);
 
         return dataConsumerDataClasses;
     }
@@ -255,6 +270,8 @@ public class FileStoreDKANDataService implements DataService
             return (DataConsumer<T>) _dataConsumerString;
         else if (dataClass == byte[].class)
             return (DataConsumer<T>) _dataConsumerBytes;
+        else if (dataClass == Map.class)
+            return (DataConsumer<T>) _dataConsumerMap;
         else
             return null;
     }
@@ -270,4 +287,6 @@ public class FileStoreDKANDataService implements DataService
     private DataConsumer<String> _dataConsumerString;
     @DataConsumerInjection(methodName="consumeBytes")
     private DataConsumer<byte[]> _dataConsumerBytes;
+    @DataConsumerInjection(methodName="consumeMap")
+    private DataConsumer<Map>    _dataConsumerMap;
 }
