@@ -181,7 +181,7 @@ public class FileStoreCKANDataService implements DataService
                 if (fileName != null)
                     outputFormDataPart(outputStream, "upload", fileName, data, "application/octet-stream", boundaryText, false);
                 else
-                    outputFormDataPart(outputStream, "upload", "upload", data, "application/octet-stream", boundaryText, false);
+                    outputFormDataPart(outputStream, "upload", "upload.unknown", data, "application/octet-stream", boundaryText, false);
                 outputEndBoundary(outputStream, boundaryText);
 
                 outputStream.close();
@@ -280,13 +280,13 @@ public class FileStoreCKANDataService implements DataService
     private String _packageId;
     private String _apiKey;
 
-    private DataFlow                          _dataFlow;
-    private String                            _name;
-    private Map<String, String>               _properties;
+    private DataFlow             _dataFlow;
+    private String               _name;
+    private Map<String, String>  _properties;
     @DataConsumerInjection(methodName="consumeString")
-    private DataConsumer<String>              _dataConsumerString;
+    private DataConsumer<String> _dataConsumerString;
     @DataConsumerInjection(methodName="consumeBytes")
-    private DataConsumer<byte[]>              _dataConsumerBytes;
+    private DataConsumer<byte[]> _dataConsumerBytes;
     @DataConsumerInjection(methodName="consumeMap")
-    private DataConsumer<Map>                 _dataConsumerMap;
+    private DataConsumer<Map>    _dataConsumerMap;
 }
