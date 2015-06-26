@@ -171,9 +171,13 @@ public class FileStoreCKANDataService implements DataService
             {
                 OutputStream outputStream = resourceCreateConnection.getOutputStream();
 
+                String url = "urn:uuid:" + UUID.randomUUID().toString();
+
                 outputFormDataPart(outputStream, "package_id", null, _packageId.getBytes(), "form-data", boundaryText, true);
                 if (resourceName != null)
                     outputFormDataPart(outputStream, "name", null, resourceName.getBytes(), "form-data", boundaryText, false);
+                if (url != null)
+                    outputFormDataPart(outputStream, "url", null, url.getBytes(), "form-data", boundaryText, false);
                 if (resourceFormat != null)
                     outputFormDataPart(outputStream, "format", null, resourceFormat.getBytes(), "form-data", boundaryText, false);
                 if (resourceDescription != null)
