@@ -174,16 +174,16 @@ public class FileStoreCKANDataService implements DataService
                 String url = "urn:uuid:" + UUID.randomUUID().toString();
 
                 outputFormDataPart(outputStream, "package_id", null, _packageId.getBytes(), "form-data", boundaryText, true);
-                if (resourceName != null)
-                    outputFormDataPart(outputStream, "name", null, resourceName.getBytes(), "form-data", boundaryText, false);
+                if (fileName != null)
+                    outputFormDataPart(outputStream, "name", null, fileName.getBytes(), "form-data", boundaryText, false);
                 if (url != null)
                     outputFormDataPart(outputStream, "url", null, url.getBytes(), "form-data", boundaryText, false);
                 if (resourceFormat != null)
                     outputFormDataPart(outputStream, "format", null, resourceFormat.getBytes(), "form-data", boundaryText, false);
                 if (resourceDescription != null)
                     outputFormDataPart(outputStream, "description ", null, resourceDescription.getBytes(), "form-data", boundaryText, false);
-                if (fileName != null)
-                    outputFormDataPart(outputStream, "upload", fileName, data, "application/octet-stream", boundaryText, false);
+                if (resourceName != null)
+                    outputFormDataPart(outputStream, "upload", resourceName, data, "application/octet-stream", boundaryText, false);
                 else
                     outputFormDataPart(outputStream, "upload", "upload.unknown", data, "application/octet-stream", boundaryText, false);
                 outputEndBoundary(outputStream, boundaryText);
