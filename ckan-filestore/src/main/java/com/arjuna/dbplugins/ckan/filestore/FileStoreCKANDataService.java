@@ -128,6 +128,7 @@ public class FileStoreCKANDataService implements DataService
         }
     }
 
+    @SuppressWarnings("rawtypes")
     public void consumeMap(Map map)
     {
         logger.log(Level.FINE, "FileStoreCKANDataService.consumeMap");
@@ -295,6 +296,7 @@ public class FileStoreCKANDataService implements DataService
     private DataConsumer<String> _dataConsumerString;
     @DataConsumerInjection(methodName="consumeBytes")
     private DataConsumer<byte[]> _dataConsumerBytes;
+    @SuppressWarnings("rawtypes")
     @DataConsumerInjection(methodName="consumeMap")
     private DataConsumer<Map>    _dataConsumerMap;
 }

@@ -105,6 +105,7 @@ public class FileStoreCKANDataServiceTest
         }
     }
 
+    @SuppressWarnings("rawtypes")
     @Test
     public void createResourceMap()
     {
