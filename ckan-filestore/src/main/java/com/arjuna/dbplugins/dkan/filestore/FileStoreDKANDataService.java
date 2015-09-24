@@ -151,7 +151,7 @@ public class FileStoreDKANDataService implements DataService
 
     private void uploadResource(byte[] data, String fileName, String resourceName, String resourceFormat, String resourceDescription)
     {
-        logger.log(Level.FINE, "FileStoreDKANDataService.consume");
+        logger.log(Level.FINE, "FileStoreDKANDataService.uploadResource");
 
         try
         {
