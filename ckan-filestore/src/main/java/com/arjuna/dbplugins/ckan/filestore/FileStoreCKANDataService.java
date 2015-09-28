@@ -135,7 +135,12 @@ public class FileStoreCKANDataService implements DataService
 
         try
         {
-            byte[] data                = (byte[]) map.get("data");
+            Object dataObject = map.get("data");
+            byte[] data       = null;
+            if ((dataObject != null) && (dataObject instanceof byte[]))
+                data  = (byte[]) dataObject;
+            else if ((dataObject != null) && (dataObject instanceof String))
+                data  = ((String) dataObject).getBytes();
             String fileName            = (String) map.get("filename");
             String resourceName        = (String) map.get("resourcename");
             String resourceFormat      = (String) map.get("resourceformat");
@@ -198,6 +203,7 @@ public class FileStoreCKANDataService implements DataService
             catch (IOException ioException)
             {
                 logger.log(Level.WARNING, "Problems writing to ckan filestore api" + ioException);
+                logger.log(Level.FINE, "Problem cause", ioException);
             }
 
             if (resourceCreateConnection.getResponseCode() != 200)
