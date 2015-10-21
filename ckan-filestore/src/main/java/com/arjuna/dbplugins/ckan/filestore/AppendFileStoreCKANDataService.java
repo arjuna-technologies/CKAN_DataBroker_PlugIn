@@ -27,22 +27,22 @@ import com.arjuna.databroker.data.jee.annotation.PostRecovery;
 import com.arjuna.databroker.data.jee.annotation.PreConfig;
 import com.arjuna.databroker.data.jee.annotation.PreDelete;
 
-public class FileStoreCKANDataService implements DataService
+public class AppendFileStoreCKANDataService implements DataService
 {
-    private static final Logger logger = Logger.getLogger(FileStoreCKANDataService.class.getName());
+    private static final Logger logger = Logger.getLogger(AppendFileStoreCKANDataService.class.getName());
 
     public static final String CKANROOTURL_PROPERTYNAME = "CKAN Root URL";
     public static final String PACKAGEID_PROPERTYNAME   = "Package Id";
     public static final String APIKEY_PROPERTYNAME      = "API Key";
 
-    public FileStoreCKANDataService()
+    public AppendFileStoreCKANDataService()
     {
-        logger.log(Level.FINE, "FileStoreCKANDataService");
+        logger.log(Level.FINE, "AppendFileStoreCKANDataService");
     }
 
-    public FileStoreCKANDataService(String name, Map<String, String> properties)
+    public AppendFileStoreCKANDataService(String name, Map<String, String> properties)
     {
-        logger.log(Level.FINE, "FileStoreCKANDataService: " + name + ", " + properties);
+        logger.log(Level.FINE, "AppendFileStoreCKANDataService: " + name + ", " + properties);
 
         _name       = name;
         _properties = properties;
@@ -102,11 +102,11 @@ public class FileStoreCKANDataService implements DataService
 
     public void consumeString(String data)
     {
-        logger.log(Level.FINE, "FileStoreCKANDataService.consumeString");
+        logger.log(Level.FINE, "AppendFileStoreCKANDataService.consumeString");
 
         try
         {
-            uploadResource(data.getBytes(), null, null, null, null);
+            appendResource(data.getBytes(), null, null, null, null);
         }
         catch (Throwable throwable)
         {
@@ -116,11 +116,11 @@ public class FileStoreCKANDataService implements DataService
 
     public void consumeBytes(byte[] data)
     {
-        logger.log(Level.FINE, "FileStoreCKANDataService.consumeBytes");
+        logger.log(Level.FINE, "AppendFileStoreCKANDataService.consumeBytes");
 
         try
         {
-            uploadResource(data, null, null, null, null);
+            appendResource(data, null, null, null, null);
         }
         catch (Throwable throwable)
         {
@@ -131,7 +131,7 @@ public class FileStoreCKANDataService implements DataService
     @SuppressWarnings("rawtypes")
     public void consumeMap(Map map)
     {
-        logger.log(Level.FINE, "FileStoreCKANDataService.consumeMap");
+        logger.log(Level.FINE, "AppendFileStoreCKANDataService.consumeMap");
 
         try
         {
@@ -146,7 +146,7 @@ public class FileStoreCKANDataService implements DataService
             String resourceFormat      = (String) map.get("resourceformat");
             String resourceDescription = (String) map.get("resourcedescription");
 
-            uploadResource(data, fileName, resourceName, resourceFormat, resourceDescription);
+            appendResource(data, fileName, resourceName, resourceFormat, resourceDescription);
         }
         catch (Throwable throwable)
         {
@@ -154,9 +154,9 @@ public class FileStoreCKANDataService implements DataService
         }
     }
 
-    private void uploadResource(byte[] data, String fileName, String resourceName, String resourceFormat, String resourceDescription)
+    private void appendResource(byte[] data, String fileName, String resourceName, String resourceFormat, String resourceDescription)
     {
-        logger.log(Level.FINE, "FileStoreCKANDataService.uploadResource");
+        logger.log(Level.FINE, "AppendFileStoreCKANDataService.appendResource");
 
         try
         {

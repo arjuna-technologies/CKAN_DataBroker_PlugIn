@@ -12,7 +12,8 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import com.arjuna.databroker.data.DataFlowNodeFactory;
 import com.arjuna.databroker.data.DataFlowNodeFactoryInventory;
-import com.arjuna.dbplugins.ckan.filestore.FileStoreCKANDataFlowNodeFactory;
+import com.arjuna.dbplugins.ckan.filestore.AppendFileStoreCKANDataFlowNodeFactory;
+import com.arjuna.dbplugins.ckan.filestore.UpdateFileStoreCKANDataFlowNodeFactory;
 
 @Startup
 @Singleton
@@ -21,15 +22,18 @@ public class CKANDataFlowNodeFactoriesSetup
     @PostConstruct
     public void setup()
     {
-        DataFlowNodeFactory fileStoreCKANDataFlowNodeFactory = new FileStoreCKANDataFlowNodeFactory("File Store CKAN Data Flow Node Factories", Collections.<String, String>emptyMap());
+        DataFlowNodeFactory appendFileStoreCKANDataFlowNodeFactory = new AppendFileStoreCKANDataFlowNodeFactory("Append File Store CKAN Data Flow Node Factories", Collections.<String, String>emptyMap());
+        DataFlowNodeFactory updateFileStoreCKANDataFlowNodeFactory = new UpdateFileStoreCKANDataFlowNodeFactory("Update File Store CKAN Data Flow Node Factories", Collections.<String, String>emptyMap());
 
-        _dataFlowNodeFactoryInventory.addDataFlowNodeFactory(fileStoreCKANDataFlowNodeFactory);
+        _dataFlowNodeFactoryInventory.addDataFlowNodeFactory(appendFileStoreCKANDataFlowNodeFactory);
+        _dataFlowNodeFactoryInventory.addDataFlowNodeFactory(updateFileStoreCKANDataFlowNodeFactory);
     }
 
     @PreDestroy
     public void cleanup()
     {
-        _dataFlowNodeFactoryInventory.removeDataFlowNodeFactory("File Store CKAN Data Flow Node Factories");
+        _dataFlowNodeFactoryInventory.removeDataFlowNodeFactory("Append File Store CKAN Data Flow Node Factories");
+        _dataFlowNodeFactoryInventory.removeDataFlowNodeFactory("Update File Store CKAN Data Flow Node Factories");
     }
 
     @EJB(lookup="java:global/databroker/data-core-jee/DataFlowNodeFactoryInventory")

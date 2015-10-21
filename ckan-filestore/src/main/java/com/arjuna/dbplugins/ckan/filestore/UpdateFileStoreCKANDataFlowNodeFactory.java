@@ -18,9 +18,9 @@ import com.arjuna.databroker.data.InvalidPropertyException;
 import com.arjuna.databroker.data.MissingMetaPropertyException;
 import com.arjuna.databroker.data.MissingPropertyException;
 
-public class FileStoreCKANDataFlowNodeFactory implements DataFlowNodeFactory
+public class UpdateFileStoreCKANDataFlowNodeFactory implements DataFlowNodeFactory
 {
-    public FileStoreCKANDataFlowNodeFactory(String name, Map<String, String> properties)
+    public UpdateFileStoreCKANDataFlowNodeFactory(String name, Map<String, String> properties)
     {
         _name       = name;
         _properties = properties;
@@ -72,9 +72,9 @@ public class FileStoreCKANDataFlowNodeFactory implements DataFlowNodeFactory
             {
                 List<String> propertyNames = new LinkedList<String>();
 
-                propertyNames.add(FileStoreCKANDataService.CKANROOTURL_PROPERTYNAME);
-                propertyNames.add(FileStoreCKANDataService.PACKAGEID_PROPERTYNAME);
-                propertyNames.add(FileStoreCKANDataService.APIKEY_PROPERTYNAME);
+                propertyNames.add(UpdateFileStoreCKANDataService.CKANROOTURL_PROPERTYNAME);
+                propertyNames.add(UpdateFileStoreCKANDataService.PACKAGEID_PROPERTYNAME);
+                propertyNames.add(UpdateFileStoreCKANDataService.APIKEY_PROPERTYNAME);
 
                 return propertyNames;
             }
@@ -93,7 +93,7 @@ public class FileStoreCKANDataFlowNodeFactory implements DataFlowNodeFactory
         if (dataFlowNodeClass.equals(DataService.class))
         {
             if (metaProperties.isEmpty())
-                return (T) new FileStoreCKANDataService(name, properties);
+                return (T) new UpdateFileStoreCKANDataService(name, properties);
             else
                 throw new InvalidMetaPropertyException("No metaproperties expected", null, null);
         }
