@@ -14,6 +14,7 @@ import com.arjuna.databroker.data.DataFlowNodeFactory;
 import com.arjuna.databroker.data.DataFlowNodeFactoryInventory;
 import com.arjuna.dbplugins.ckan.filestore.AppendFileStoreCKANDataFlowNodeFactory;
 import com.arjuna.dbplugins.ckan.filestore.UpdateFileStoreCKANDataFlowNodeFactory;
+import com.arjuna.dbplugins.ckan.filestore.FileStoreCKANDataFlowNodeFactory;
 
 @Startup
 @Singleton
@@ -27,6 +28,10 @@ public class CKANDataFlowNodeFactoriesSetup
 
         _dataFlowNodeFactoryInventory.addDataFlowNodeFactory(appendFileStoreCKANDataFlowNodeFactory);
         _dataFlowNodeFactoryInventory.addDataFlowNodeFactory(updateFileStoreCKANDataFlowNodeFactory);
+
+        DataFlowNodeFactory fileStoreCKANDataFlowNodeFactory = new FileStoreCKANDataFlowNodeFactory("(Deprecated) File Store CKAN Data Flow Node Factories", Collections.<String, String>emptyMap());
+
+        _dataFlowNodeFactoryInventory.addDataFlowNodeFactory(fileStoreCKANDataFlowNodeFactory);
     }
 
     @PreDestroy
@@ -34,6 +39,8 @@ public class CKANDataFlowNodeFactoriesSetup
     {
         _dataFlowNodeFactoryInventory.removeDataFlowNodeFactory("Append File Store CKAN Data Flow Node Factories");
         _dataFlowNodeFactoryInventory.removeDataFlowNodeFactory("Update File Store CKAN Data Flow Node Factories");
+
+        _dataFlowNodeFactoryInventory.removeDataFlowNodeFactory("(Deprecated) File Store CKAN Data Flow Node Factories");
     }
 
     @EJB(lookup="java:global/databroker/data-core-jee/DataFlowNodeFactoryInventory")
